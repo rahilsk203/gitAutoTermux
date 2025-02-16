@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import json
 import subprocess
@@ -138,11 +139,12 @@ def push_repo():
         print("❌ No GitHub credentials found! Please login first.")
         return
 
-    repo_url = f"https://{credentials['username']}:{credentials['token']}@github.com/{credentials['username']}/{os.path.basename(os.getcwd())}.git"
-
     execute_command(["git", "add", "."])
-    execute_command(["git", "commit", "-m", "Auto commit"])
-    execute_command(["git", "push", repo_url])
+    commit_message = input("Enter commit message: ").strip()
+    if not commit_message:
+        commit_message = "Auto commit"
+    execute_command(["git", "commit", "-m", commit_message])
+    execute_command(["git", "push"])
 
 def clone_public_repo():
     """Clone any public GitHub repository and enter the folder."""
@@ -165,6 +167,35 @@ def clone_public_repo():
     else:
         print("❌ Clone failed!")
 
+# ======= New Features =======
+def pull_repo():
+    """Pull latest changes from GitHub."""
+    if not os.path.exists(".git"):
+        print("❌ This is not a Git repository!")
+        return
+
+    execute_command(["git", "pull"])
+
+def create_branch(branch_name):
+    """Create and switch to a new branch."""
+    execute_command(["git", "checkout", "-b", branch_name])
+
+def list_branches():
+    """List all branches."""
+    execute_command(["git", "branch"])
+
+def switch_branch(branch_name):
+    """Switch to an existing branch."""
+    execute_command(["git", "checkout", branch_name])
+
+def show_status():
+    """Show the current repository status."""
+    execute_command(["git", "status"])
+
+def show_commit_history():
+    """Show the commit history."""
+    execute_command(["git", "log", "--oneline"])
+
 # ======= Main Menu =======
 def main():
     """User command menu."""
@@ -176,10 +207,15 @@ def main():
         if not inside_git_repo:
             print(" 1️⃣  Create Repository")
             print(" 5️⃣  Clone Public Repository")
+        else:
+            print(" 4️⃣  Push to Repository")
+            print(" 7️⃣  Pull Latest Changes")
+            print(" 8️⃣  Branch Management")
+            print(" 9️⃣  Show Status")
+            print(" 0️⃣  Show Commit History")
         
         print(" 2️⃣  Delete Repository")
         print(" 3️⃣  Make Repository Private/Public")
-        print(" 4️⃣  Push to Repository")
         print(" 6️⃣  Exit")
 
         choice = input("Enter choice: ")
@@ -198,7 +234,7 @@ def main():
             private = input("Make Private? (yes/no): ").strip().lower() == "yes"
             set_repo_visibility(repo_name, private)
 
-        elif choice == "4":
+        elif choice == "4" and inside_git_repo:
             push_repo()
 
         elif choice == "5" and not inside_git_repo:
@@ -208,9 +244,37 @@ def main():
             print("👋 Exiting...!")
             break
 
+        elif choice == "7" and inside_git_repo:
+            pull_repo()
+
+        elif choice == "8" and inside_git_repo:
+            print("\n📌 Branch Management:")
+            print(" a) Create new branch")
+            print(" b) List branches")
+            print(" c) Switch branch")
+            sub_choice = input("Enter choice (a/b/c): ").strip().lower()
+            if sub_choice == "a":
+                branch_name = input("Enter new branch name: ")
+                create_branch(branch_name)
+            elif sub_choice == "b":
+                list_branches()
+            elif sub_choice == "c":
+                branch_name = input("Enter branch name to switch to: ")
+                switch_branch(branch_name)
+            else:
+                print("❌ Invalid option!")
+
+        elif choice == "9" and inside_git_repo:
+            show_status()
+
+        elif choice == "0" and inside_git_repo:
+            show_commit_history()
+
         else:
             print("❌ Invalid or hidden option!")
 
+        # Update inside_git_repo status after each action
+        inside_git_repo = os.path.exists(".git")
+
 if __name__ == "__main__":
     main()
-            
