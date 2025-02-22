@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Auto-Installation Script for gitauto.py (Linux)
+set -e  # Exit on error
+
 echo "=========================================="
 echo "🚀 Setting up gitauto.py for Linux..."
 echo "=========================================="
@@ -8,7 +10,7 @@ echo "=========================================="
 # Step 1: Check and Install Python
 echo -e "\n🔍 Checking for Python installation..."
 if command -v python3 &>/dev/null; then
-    echo "✅ Python is already installed."
+    echo "✅ Python is already installed. Version: $(python3 --version)"
 else
     echo "❌ Python is not installed. Installing Python..."
     sudo apt update && sudo apt install -y python3
@@ -18,7 +20,7 @@ fi
 # Step 2: Check and Install Git
 echo -e "\n🔍 Checking for Git installation..."
 if command -v git &>/dev/null; then
-    echo "✅ Git is already installed."
+    echo "✅ Git is already installed. Version: $(git --version)"
 else
     echo "❌ Git is not installed. Installing Git..."
     sudo apt install -y git
@@ -59,16 +61,22 @@ else
     echo "✅ Shebang already exists in gitauto.py."
 fi
 
-# Step 6: Create a wrapper script for the gitauto command
+# Step 6: Ensure gitauto.py is executable
+echo -e "\n🔧 Setting executable permission for gitauto.py..."
+sudo chmod +x "$GIT_AUTO_DIR/gitauto.py"
+echo "✅ gitauto.py is now executable."
+
+# Step 7: Create a wrapper script for the gitauto command
 echo -e "\n📝 Creating 'gitauto' command..."
-sudo bash -c 'echo "#!/bin/bash
-python3 /opt/gitAuto/gitauto.py \""" > /usr/local/bin/gitauto'
+WRAPPER_SCRIPT="/usr/local/bin/gitauto"
+sudo bash -c "echo '#!/bin/bash
+python3 /opt/gitAuto/gitauto.py \"\$@\"' > $WRAPPER_SCRIPT"
 
 # Give execution permission
-sudo chmod +x /usr/local/bin/gitauto
+sudo chmod +x "$WRAPPER_SCRIPT"
 echo "✅ 'gitauto' command is now globally available!"
 
-# Step 7: Verify Installation
+# Step 8: Verify Installation
 echo -e "\n🔍 Verifying gitauto command..."
 if command -v gitauto &>/dev/null; then
     echo "✅ gitauto command is now available globally!"
@@ -77,7 +85,7 @@ else
     exit 1
 fi
 
-# Step 8: Final message
+# Step 9: Final message
 echo -e "\n=========================================="
 echo "🎉 Setup completed successfully!"
 echo "You can now run 'gitauto' from anywhere."
